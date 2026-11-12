@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  check:
+    name: Check
+    runs-on: checklane-2vcpu
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Typecheck, lint, format and test
+        run: pnpm check
+      - name: dist is up to date
+        id: dist
+        run: |
+          pnpm build
+          if ! git diff --exit-code -- dist; then
+            echo "::error::dist/ is out of date: run pnpm build and commit it, or take it from this run: gh run download ${{ github.run_id }} -n dist -D dist"
+            exit 1
+          fi
+      - name: Upload the built dist
+        if: failure() && steps.dist.outcome == 'failure'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dist
+          path: dist/
+
+  # The action as a workflow runs it: action.yml, dist/ and Node 24. Off
+  # Checklane it must warn and let the job go on.
+  action:
+    name: Action runs off Checklane
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./
+        with:
+          key: ci
+          path: ~/.cache/checklane-disk-ci
