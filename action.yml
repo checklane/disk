@@ -1,0 +1,17 @@
+name: Checklane disk
+description: Keep a directory between runs of your jobs on Checklane, on a disk that is mounted in place, with nothing to download or unpack.
+author: Checklane
+branding:
+  icon: hard-drive
+  color: green
+inputs:
+  key:
+    description: Names the disk. Jobs of the repository that use the same key get the same disk.
+    required: true
+  path:
+    description: The directory the disk is mounted at. ~ is your home directory; a relative path is relative to the workspace.
+    required: true
+runs:
+  using: node24
+  main: main.js
+  post: post.js
