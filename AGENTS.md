@@ -66,10 +66,10 @@ other with `.ts` extensions and use only erasable syntax (no `enum`, no `namespa
 - `ci.yml`, on every pull request and push to `main`: types, lint, formatting, tests and
   `dist/` up to date (when it isn't, the run uploads the built `dist/` to take from it).
   Then the action itself off Checklane, where it must warn and let the job go on.
-- `e2e.yml`, on pushes to `main`, daily and by hand: the action on a `checklane-2vcpu`
-  runner, with real disks. Four mount, a fifth and a repeated key are skipped, and each disk
-  says which run wrote it last. It needs the machines to serve disks, so it fails when they
-  don't.
+- `e2e.yml`, on every pull request, pushes to `main`, daily and by hand: the action on a
+  `checklane-2vcpu` runner, with real disks. Four mount, a fifth and a repeated key are
+  skipped, and each disk says which run wrote it last (on `main`; a pull request's writes
+  aren't kept). It fails when the machines don't serve disks.
 - `release.yml`, by hand: releases a version. See below.
 - Dependabot bumps the workflows' actions and the dev tools weekly, after a week's cooldown.
   Actions are pinned to a commit with the version in a comment; keep it that way.

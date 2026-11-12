@@ -1,9 +1,12 @@
-# The action on Checklane's runners: real disks, mounted and kept.
+# The action on Checklane's runners: real disks, mounted and kept. On pull
+# requests the disks mount but what they write isn't kept: only main's runs
+# are.
 name: End to end
 
 on:
   push:
     branches: [main]
+  pull_request:
   schedule:
     - cron: "17 6 * * *"
   workflow_dispatch:
