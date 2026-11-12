@@ -46,6 +46,7 @@ what they wrote. Its answers' `skipped` says why a disk wasn't mounted; print it
 - `src/mount.ts`, `src/unmount.ts`: the two steps. `src/main.ts`, `src/post.ts` only call them.
 - `test/disk.test.ts`: the steps against a fake machine, with `node:test`.
 - `dist/`: the build, committed.
+- `.github/`: workflows, Dependabot and the logos the README shows.
 
 ## Commands
 
@@ -60,16 +61,25 @@ Node 24 runs the TypeScript tests directly (type stripping), so source files imp
 other with `.ts` extensions and use only erasable syntax (no `enum`, no `namespace`);
 `tsc` rewrites the extensions to `.js` in `dist/`. Lint is oxlint, formatting is oxfmt.
 
+## Workflows
+
+- `ci.yml`, on every pull request and push to `main`: types, lint, formatting, tests and
+  `dist/` up to date (when it isn't, the run uploads the built `dist/` to take from it).
+  Then the action itself off Checklane, where it must warn and let the job go on.
+- `e2e.yml`, on pushes to `main`, daily and by hand: the action on a `checklane-2vcpu`
+  runner, with real disks. Four mount, a fifth and a repeated key are skipped, and each disk
+  says which run wrote it last. It needs the machines to serve disks, so it fails when they
+  don't.
+- `release.yml`, by hand: releases a version. See below.
+- Dependabot bumps the workflows' actions and the dev tools weekly, after a week's cooldown.
+  Actions are pinned to a commit with the version in a comment; keep it that way.
+
 ## Releasing
 
-Customers use the major tag `v1`. After a change is merged to `main`:
-
-```sh
-git tag v1.x.y && git push origin v1.x.y
-git tag -f v1 && git push -f origin v1
-```
-
-A change that breaks a workflow that works today gets a new major tag instead.
+Customers use the major tag `v1`. After a change is merged to `main`, run the Release
+workflow with the next version (`v1.2.0`): it checks `main` again, tags it, writes the
+GitHub release and moves `v1` to it. A change that breaks a workflow that works today gets a
+new major version instead, with "Move the major tag" off until it's ready.
 
 ## Commits and pull requests
 

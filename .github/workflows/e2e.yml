@@ -1,0 +1,73 @@
+# The action on Checklane's runners: real disks, mounted and kept.
+name: End to end
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  disks:
+    name: Disks on Checklane
+    runs-on: checklane-2vcpu
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: The machine serves disks
+        run: test -n "$CHECKLANE_DISK_URL" && test -n "$CHECKLANE_DISK_TOKEN"
+
+      - uses: ./
+        with:
+          key: e2e-a
+          path: ./a
+      - uses: ./
+        with:
+          key: e2e-b
+          path: ~/b
+      - uses: ./
+        with:
+          key: e2e-c
+          path: ./c
+      - uses: ./
+        with:
+          key: e2e-d
+          path: ./d
+      - name: A fifth disk is skipped
+        uses: ./
+        with:
+          key: e2e-e
+          path: ./e
+      - name: The same key twice is skipped
+        uses: ./
+        with:
+          key: e2e-a
+          path: ./a-again
+
+      - name: Four disks are mounted, the others aren't
+        run: |
+          for at in ./a ~/b ./c ./d; do
+            mountpoint -q "$at" || { echo "::error::$at isn't mounted"; exit 1; }
+          done
+          for at in ./e ./a-again; do
+            if mountpoint -q "$at"; then echo "::error::$at is mounted"; exit 1; fi
+          done
+
+      - name: What the last trusted run left
+        run: |
+          if [ -f ./a/run ]; then
+            echo "Disk e2e-a holds run $(cat ./a/run)"
+          else
+            echo "Disk e2e-a is empty"
+          fi
+
+      - name: Write to the disks
+        run: |
+          for at in ./a ~/b ./c ./d; do
+            echo "$GITHUB_RUN_ID" > "$at/run"
+            cmp -s <(echo "$GITHUB_RUN_ID") "$at/run"
+          done
