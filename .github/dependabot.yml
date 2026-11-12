@@ -23,6 +23,11 @@ updates:
       prefix: build
       include: scope
     versioning-strategy: increase
+    ignore:
+      # The runner runs the action on Node 24 (action.yml): its types stay on
+      # 24, so nothing newer slips in. A new major goes with a new runs.using.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
     groups:
       tools:
         dependency-type: development
