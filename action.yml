@@ -13,5 +13,5 @@ inputs:
     required: true
 runs:
   using: node24
-  main: main.js
-  post: post.js
+  main: dist/main.js
+  post: dist/post.js

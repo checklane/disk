@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+      - name: dist is up to date
+        run: |
+          pnpm build
+          git diff --exit-code -- dist || { echo "::error::dist/ is out of date: run pnpm build and commit it"; exit 1; }
+
+  # The action as a workflow uses it: off Checklane it warns and passes.
+  action:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./
+        with:
+          key: ci
+          path: ~/.cache/checklane-disk-ci

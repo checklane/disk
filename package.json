@@ -1,0 +1,27 @@
+{
+  "name": "checklane-disk",
+  "version": "1.0.1",
+  "description": "Keep a directory between runs of your jobs on Checklane.",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p .",
+    "lint": "oxlint --deny-warnings src test",
+    "format": "oxlint -A all -D import/newline-after-import --fix src test && oxfmt .",
+    "format:check": "oxfmt --check .",
+    "test": "node --test \"test/**/*.test.ts\"",
+    "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.2",
+    "oxfmt": "0.78.0",
+    "oxlint": "1.93.0",
+    "typescript": "7.0.2"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "packageManager": "pnpm@11.20.0"
+}
