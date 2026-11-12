@@ -62,7 +62,12 @@ export function saveState(env: Env, name: string, value: string): void {
   }
 }
 
-/** The machine's disk endpoint, or null when the job isn't on Checklane. */
+/** Whether the job runs on a Checklane machine: Checklane names its runners checklane-<job>. */
+export function onChecklane(env: Env): boolean {
+  return (env.RUNNER_NAME ?? "").startsWith("checklane-");
+}
+
+/** The machine's disk endpoint, or null when it offers none. */
 export function endpoint(env: Env): Endpoint | null {
   const url = env.CHECKLANE_DISK_URL;
   const token = env.CHECKLANE_DISK_TOKEN;

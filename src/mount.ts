@@ -1,7 +1,17 @@
 // Mounts the repository's disk of the key at the path. Nothing here fails the
 // job: without the disk, the job runs as it would without this step.
 
-import { ask, endpoint, input, notice, reason, resolve, saveState, warning } from "./lib.ts";
+import {
+  ask,
+  endpoint,
+  input,
+  notice,
+  onChecklane,
+  reason,
+  resolve,
+  saveState,
+  warning,
+} from "./lib.ts";
 import type { Env, MountAnswer } from "./lib.ts";
 
 export async function mount(env: Env): Promise<void> {
@@ -18,7 +28,11 @@ export async function mount(env: Env): Promise<void> {
 
   const disks = endpoint(env);
   if (!disks) {
-    warning("checklane/disk does nothing here: the job isn’t running on Checklane");
+    warning(
+      onChecklane(env)
+        ? `Disk ${key} isn’t mounted, so the job runs without it: this Checklane machine doesn’t offer disks`
+        : "checklane/disk does nothing here: the job isn’t running on Checklane",
+    );
     return;
   }
 
