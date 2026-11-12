@@ -43,7 +43,11 @@ export function saveState(env, name, value) {
         fs.appendFileSync(env.GITHUB_STATE, `${name}=${value}${os.EOL}`);
     }
 }
-/** The machine's disk endpoint, or null when the job isn't on Checklane. */
+/** Whether the job runs on a Checklane machine: Checklane names its runners checklane-<job>. */
+export function onChecklane(env) {
+    return (env.RUNNER_NAME ?? "").startsWith("checklane-");
+}
+/** The machine's disk endpoint, or null when it offers none. */
 export function endpoint(env) {
     const url = env.CHECKLANE_DISK_URL;
     const token = env.CHECKLANE_DISK_TOKEN;

@@ -86,6 +86,21 @@ test("does nothing but warn off Checklane", async (t) => {
   assert.equal(fs.readFileSync(env.GITHUB_STATE, "utf8"), "");
 });
 
+test("on a Checklane machine without disks, says so", async (t) => {
+  const lines = output(t);
+  const env = job(t, {
+    INPUT_KEY: "go-build",
+    INPUT_PATH: "~/.cache/go-build",
+    RUNNER_NAME: "checklane-131079136857",
+  });
+  await mount(env);
+  assert.match(
+    lines.join(""),
+    /^::warning::Disk go-build isn’t mounted, so the job runs without it: this Checklane machine doesn’t offer disks/,
+  );
+  assert.equal(fs.readFileSync(env.GITHUB_STATE, "utf8"), "");
+});
+
 test("warns without a key or a path", async (t) => {
   const lines = output(t);
   await mount(job(t, { INPUT_KEY: "go-build" }));
