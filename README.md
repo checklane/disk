@@ -1,13 +1,13 @@
-<h1>
+<p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)"
-            srcset=".github/assets/checklane-logo-paper.svg">
-    <img src=".github/assets/checklane-logo-ink.svg" alt="Checklane" width="280">
+    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/checklane-logo-paper.svg">
+    <img src=".github/assets/checklane-logo-ink.svg" alt="Checklane" width="240">
   </picture>
-  disk
-</h1>
+</p>
 
-Keep a directory between your jobs on [Checklane](https://checklane.sh), mounted in place.
+A GitHub Action that keeps folders between your jobs on [Checklane](https://checklane.sh). Each
+folder sits on a disk that is mounted in place when the job starts, so there is nothing to
+download, upload or unpack, however big it gets.
 
 ## Quick start
 
