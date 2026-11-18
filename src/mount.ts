@@ -14,6 +14,7 @@ import {
   saveState,
   warning,
 } from "./lib.ts";
+import { commitModes } from "./lib.ts";
 import type { Env, MountAnswer } from "./lib.ts";
 
 export async function mount(env: Env): Promise<void> {
@@ -25,6 +26,13 @@ export async function mount(env: Env): Promise<void> {
   }
   if (/[\r\n]/.test(key)) {
     warning("checklane/disk needs a key on one line; the job runs without the disk");
+    return;
+  }
+  const commit = input(env, "commit") || "true";
+  if (!commitModes.includes(commit)) {
+    warning(
+      `checklane/disk’s commit is true, false, on-change or if-missing, not ${commit}; the job runs without the disk`,
+    );
     return;
   }
 
@@ -42,7 +50,7 @@ export async function mount(env: Env): Promise<void> {
   const at = [...new Set(given.map((one) => resolve(env, one)))];
   let answer: MountAnswer;
   try {
-    answer = await ask<MountAnswer>(disks, "/mount", { key, path: at[0], paths: at });
+    answer = await ask<MountAnswer>(disks, "/mount", { key, path: at[0], paths: at, commit });
   } catch (error) {
     warning(`Disk ${key} isn’t mounted, so the job runs without it: ${reason(error)}`);
     return;
@@ -61,6 +69,11 @@ export async function mount(env: Env): Promise<void> {
       ? `Disk ${key} mounted at ${mounted.join(", ")}, with what the last run left`
       : `Disk ${key} mounted at ${mounted.join(", ")}, empty`,
   );
+  if (commit !== "true" && answer.commit === undefined) {
+    warning(
+      `Disk ${key} is kept after a trusted run whatever commit says: this Checklane machine doesn’t read commit yet`,
+    );
+  }
   const left = at.filter((one) => !mounted.includes(one));
   if (left.length > 0) {
     warning(

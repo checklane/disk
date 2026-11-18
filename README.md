@@ -54,13 +54,23 @@ Other branches and pull requests can use the disk, but their changes are thrown 
 
 ## Inputs
 
-Both inputs are required.
+`key` and `path` are required.
 
 - **`key`**: Names the disk within your repository. Up to 128 characters, on one line.
   Jobs that use the same key get the same disk.
 - **`path`**: The directory where the disk is mounted. Use an absolute path, `~` for
   the runner's home, or a path relative to the workspace. To keep several directories
   on one disk, list up to 16 of them, one per line.
+
+- **`commit`**: When the job's changes to the disk are kept for later jobs. Changes are
+  only ever kept from a successful trusted run (see [How it works](#how-it-works)).
+  - `true` (default): always keep them.
+  - `false`: never keep them. The job reads the disk, and its changes are thrown away.
+    Use it for jobs that share a key with the job that fills the disk, so they don't
+    replace what it left.
+  - `on-change`: keep them only when the job wrote to the disk.
+  - `if-missing`: keep them only when the disk started empty, so the first job fills it
+    and later jobs only read it.
 
 The directory is created if it does not exist. **Anything already at `path` is hidden
 while the disk is mounted.** Mount the disk before installing dependencies or building.
@@ -192,7 +202,8 @@ other branches behave the same way.
 
 ### What if two jobs use the same key at once?
 
-The last job to finish wins. Among jobs whose changes are kept, the next job starts
+The last job to finish wins. To have one job fill the disk and the others only read
+it, give the others `commit: false`. Among jobs whose changes are kept, the next job starts
 with what the last finisher left. Changes from pull requests and other untrusted runs
 are still thrown away.
 

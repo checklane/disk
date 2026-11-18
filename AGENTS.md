@@ -12,12 +12,14 @@ job runs on; the action only asks for it.
 1. `main` (`src/main.ts` → `src/mount.ts`) reads the inputs `key` and `path` (one path a
    line, up to 16), makes each path absolute (`~` is `$HOME`, a relative path is relative
    to `$GITHUB_WORKSPACE`), and posts `{"key", "path", "paths"}` to
-   `$CHECKLANE_DISK_URL/mount` with `Authorization: Bearer $CHECKLANE_DISK_TOKEN`: `paths`
+   `$CHECKLANE_DISK_URL/mount` with `Authorization: Bearer $CHECKLANE_DISK_TOKEN`, and
+   the `commit` input (`true`, `false`, `on-change` or `if-missing`) as `commit`: `paths`
    all of them, `path` the first, for machines from before several paths, which mount the
    disk there alone. The machine answers
-   `{"mounted": bool, "restored": bool, "paths"?: string[], "skipped"?: string}`, `paths`
-   where it mounted the disk; without it, only at `path`, and the step warns about the
-   rest. On success it saves `key` as step state.
+   `{"mounted": bool, "restored": bool, "paths"?: string[], "commit"?: string, "skipped"?: string}`,
+   `paths` where it mounted the disk; without it, only at `path`, and the step warns about
+   the rest. `commit` is the input as the machine read it; without it, the machine keeps
+   the disk whatever the input says, and a step that asked otherwise warns. On success it saves `key` as step state.
 2. `post` (`src/post.ts` → `src/unmount.ts`) posts `{"key"}` to
    `$CHECKLANE_DISK_URL/unmount`, answered `{"unmounted": bool, "skipped"?: string}`. The
    machine unmounts every disk at the end of the job anyway; this only does it sooner.

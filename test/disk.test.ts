@@ -127,6 +127,7 @@ test("mounts the disk and unmounts it after the job", async (t) => {
       key: "go-build",
       path: "/home/runner/.cache/go-build",
       paths: ["/home/runner/.cache/go-build"],
+      commit: "true",
     },
   });
   assert.match(
@@ -163,6 +164,7 @@ test("mounts one disk at each of its paths", async (t) => {
       key: "go",
       path: "/home/runner/.cache/go-build",
       paths: ["/home/runner/.cache/go-build", "/home/runner/go/pkg/mod"],
+      commit: "true",
     },
   });
   assert.equal(
@@ -189,6 +191,51 @@ test("a machine that mounts a disk at one path says which paths go without", asy
       "::warning::Disk go isn’t mounted at /home/runner/go/pkg/mod, so the job runs without it there: this Checklane machine mounts a disk at one path only\n",
   );
   assert.equal(fs.readFileSync(env.GITHUB_STATE, "utf8"), `key=go${os.EOL}`);
+});
+
+test("sends the commit input and says when the machine doesn’t read it", async (t) => {
+  for (const [answered, warns] of [
+    [{ mounted: true, restored: true, paths: ["/home/runner/tools"], commit: "false" }, false],
+    [{ mounted: true, restored: true, paths: ["/home/runner/tools"] }, true],
+  ] as const) {
+    const disks = await machine(t, { "/mount": answered });
+    const lines = output(t);
+    await mount(
+      job(t, {
+        INPUT_KEY: "tools",
+        INPUT_PATH: "~/tools",
+        INPUT_COMMIT: "false",
+        CHECKLANE_DISK_URL: disks.url,
+        CHECKLANE_DISK_TOKEN: "token",
+      }),
+    );
+    assert.equal((disks.asked[0]?.body as { commit?: string } | undefined)?.commit, "false");
+    assert.equal(
+      lines
+        .join("")
+        .includes("::warning::Disk tools is kept after a trusted run whatever commit says"),
+      warns,
+    );
+  }
+});
+
+test("warns about a commit it doesn’t know and asks for no disk", async (t) => {
+  const disks = await machine(t, {});
+  const lines = output(t);
+  await mount(
+    job(t, {
+      INPUT_KEY: "tools",
+      INPUT_PATH: "~/tools",
+      INPUT_COMMIT: "sometimes",
+      CHECKLANE_DISK_URL: disks.url,
+      CHECKLANE_DISK_TOKEN: "token",
+    }),
+  );
+  assert.match(
+    lines.join(""),
+    /^::warning::checklane\/disk’s commit is true, false, on-change or if-missing, not sometimes/,
+  );
+  assert.equal(disks.asked.length, 0);
 });
 
 test("a disk not mounted warns and leaves the job be", async (t) => {

@@ -11,12 +11,17 @@ export type Env = Record<string, string | undefined>;
 export type Endpoint = { url: string; token: string };
 
 /** paths are where the disk is mounted; a machine that mounts a disk at one path only leaves them out. */
+/** commit is the commit input as the machine read it; a machine that keeps every disk leaves it out. */
 export type MountAnswer = {
   mounted: boolean;
   restored: boolean;
   paths?: string[];
+  commit?: string;
   skipped?: string;
 };
+
+/** The commit input's values: when what the job leaves on the disk is kept. */
+export const commitModes = ["true", "false", "on-change", "if-missing"];
 export type UnmountAnswer = { unmounted: boolean; skipped?: string };
 
 // requestTimeout bounds a request to the disk endpoint: putting a disk in
