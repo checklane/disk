@@ -49,7 +49,7 @@ what they wrote. Its answers' `skipped` says why a disk wasn't mounted; print it
 - `src/mount.ts`, `src/unmount.ts`: the two steps. `src/main.ts`, `src/post.ts` only call them.
 - `test/disk.test.ts`: the steps against a fake machine, with `node:test`.
 - `dist/`: the build, committed.
-- `.github/`: workflows, Dependabot and the README's banner, light and dark.
+- `.github/`: workflows, Dependabot and the logos the README shows.
 
 ## Commands
 

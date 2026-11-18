@@ -1,7 +1,9 @@
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset=".github/assets/banner-dark.svg">
-  <img src=".github/assets/banner-light.svg" alt="Checklane disk: keep folders between jobs, mounted in place, with nothing to download">
+  <source media="(prefers-color-scheme: dark)" srcset=".github/assets/checklane-logo-paper.svg">
+  <img src=".github/assets/checklane-logo-ink.svg" alt="Checklane" width="200">
 </picture>
+
+# Checklane disk
 
 Keep folders between your jobs on [Checklane](https://checklane.sh), on a disk mounted in place.
 
