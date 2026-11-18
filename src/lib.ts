@@ -10,7 +10,13 @@ export type Env = Record<string, string | undefined>;
 /** The machine's disk endpoint, when the job runs on Checklane. */
 export type Endpoint = { url: string; token: string };
 
-export type MountAnswer = { mounted: boolean; restored: boolean; skipped?: string };
+/** paths are where the disk is mounted; a machine that mounts a disk at one path only leaves them out. */
+export type MountAnswer = {
+  mounted: boolean;
+  restored: boolean;
+  paths?: string[];
+  skipped?: string;
+};
 export type UnmountAnswer = { unmounted: boolean; skipped?: string };
 
 // requestTimeout bounds a request to the disk endpoint: putting a disk in
@@ -40,6 +46,14 @@ export function warning(message: string): void {
 /** Reads an action input as the runner passes it. */
 export function input(env: Env, name: string): string {
   return (env[`INPUT_${name.toUpperCase()}`] ?? "").trim();
+}
+
+/** Reads an input of one value a line, without the empty lines. */
+export function lines(env: Env, name: string): string[] {
+  return input(env, name)
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line !== "");
 }
 
 /** Makes the path absolute: ~ is the home directory, a relative path is relative to the workspace. */

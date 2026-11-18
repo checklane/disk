@@ -1,10 +1,12 @@
-// Mounts the repository's disk of the key at the path. Nothing here fails the
-// job: without the disk, the job runs as it would without this step.
+// Mounts the repository's disk of the key at each of its paths. Nothing here
+// fails the job: without the disk, the job runs as it would without this
+// step.
 
 import {
   ask,
   endpoint,
   input,
+  lines,
   notice,
   onChecklane,
   reason,
@@ -16,8 +18,8 @@ import type { Env, MountAnswer } from "./lib.ts";
 
 export async function mount(env: Env): Promise<void> {
   const key = input(env, "key");
-  const given = input(env, "path");
-  if (!key || !given) {
+  const given = lines(env, "path");
+  if (!key || given.length === 0) {
     warning("checklane/disk needs both key and path; the job runs without the disk");
     return;
   }
@@ -36,10 +38,11 @@ export async function mount(env: Env): Promise<void> {
     return;
   }
 
-  const at = resolve(env, given);
+  // A machine from before several paths reads path alone.
+  const at = [...new Set(given.map((one) => resolve(env, one)))];
   let answer: MountAnswer;
   try {
-    answer = await ask<MountAnswer>(disks, "/mount", { key, path: at });
+    answer = await ask<MountAnswer>(disks, "/mount", { key, path: at[0], paths: at });
   } catch (error) {
     warning(`Disk ${key} isn’t mounted, so the job runs without it: ${reason(error)}`);
     return;
@@ -52,9 +55,16 @@ export async function mount(env: Env): Promise<void> {
   }
 
   saveState(env, "key", key);
+  const mounted = answer.paths ?? [at[0]];
   notice(
     answer.restored
-      ? `Disk ${key} mounted at ${at}, with what the last run left`
-      : `Disk ${key} mounted at ${at}, empty`,
+      ? `Disk ${key} mounted at ${mounted.join(", ")}, with what the last run left`
+      : `Disk ${key} mounted at ${mounted.join(", ")}, empty`,
   );
+  const left = at.filter((one) => !mounted.includes(one));
+  if (left.length > 0) {
+    warning(
+      `Disk ${key} isn’t mounted at ${left.join(", ")}, so the job runs without it there: this Checklane machine mounts a disk at one path only`,
+    );
+  }
 }

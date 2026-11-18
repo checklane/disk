@@ -26,6 +26,13 @@ export function warning(message) {
 export function input(env, name) {
     return (env[`INPUT_${name.toUpperCase()}`] ?? "").trim();
 }
+/** Reads an input of one value a line, without the empty lines. */
+export function lines(env, name) {
+    return input(env, name)
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter((line) => line !== "");
+}
 /** Makes the path absolute: ~ is the home directory, a relative path is relative to the workspace. */
 export function resolve(env, given) {
     const home = env.HOME || os.homedir();
