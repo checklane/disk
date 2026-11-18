@@ -1,5 +1,5 @@
 name: Checklane disk
-description: Keep a directory between runs of your jobs on Checklane, on a disk that is mounted in place, with nothing to download or unpack.
+description: Keep folders between your jobs on Checklane, on a disk mounted in place, with nothing to download or unpack.
 author: Checklane
 branding:
   icon: hard-drive
