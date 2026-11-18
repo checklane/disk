@@ -123,7 +123,11 @@ test("mounts the disk and unmounts it after the job", async (t) => {
   await mount(env);
   assert.deepEqual(disks.asked[0], {
     route: "/mount",
-    body: { key: "go-build", path: "/home/runner/.cache/go-build" },
+    body: {
+      key: "go-build",
+      path: "/home/runner/.cache/go-build",
+      paths: ["/home/runner/.cache/go-build"],
+    },
   });
   assert.match(
     lines.join(""),
@@ -134,6 +138,57 @@ test("mounts the disk and unmounts it after the job", async (t) => {
   await unmount({ ...env, STATE_key: "go-build" });
   assert.deepEqual(disks.asked[1], { route: "/unmount", body: { key: "go-build" } });
   assert.match(lines.join(""), /Disk go-build unmounted\n$/);
+});
+
+test("mounts one disk at each of its paths", async (t) => {
+  const disks = await machine(t, {
+    "/mount": {
+      mounted: true,
+      restored: false,
+      paths: ["/home/runner/.cache/go-build", "/home/runner/go/pkg/mod"],
+    },
+  });
+  const lines = output(t);
+  const env = job(t, {
+    INPUT_KEY: "go",
+    INPUT_PATH: "~/.cache/go-build\n\n  ~/go/pkg/mod  \n~/.cache/go-build\n",
+    CHECKLANE_DISK_URL: disks.url,
+    CHECKLANE_DISK_TOKEN: "token",
+  });
+
+  await mount(env);
+  assert.deepEqual(disks.asked[0], {
+    route: "/mount",
+    body: {
+      key: "go",
+      path: "/home/runner/.cache/go-build",
+      paths: ["/home/runner/.cache/go-build", "/home/runner/go/pkg/mod"],
+    },
+  });
+  assert.equal(
+    lines.join(""),
+    "::notice::Disk go mounted at /home/runner/.cache/go-build, /home/runner/go/pkg/mod, empty\n",
+  );
+  assert.equal(fs.readFileSync(env.GITHUB_STATE, "utf8"), `key=go${os.EOL}`);
+});
+
+test("a machine that mounts a disk at one path says which paths go without", async (t) => {
+  const disks = await machine(t, { "/mount": { mounted: true, restored: true } });
+  const lines = output(t);
+  const env = job(t, {
+    INPUT_KEY: "go",
+    INPUT_PATH: "~/.cache/go-build\n~/go/pkg/mod",
+    CHECKLANE_DISK_URL: disks.url,
+    CHECKLANE_DISK_TOKEN: "token",
+  });
+
+  await mount(env);
+  assert.equal(
+    lines.join(""),
+    "::notice::Disk go mounted at /home/runner/.cache/go-build, with what the last run left\n" +
+      "::warning::Disk go isn’t mounted at /home/runner/go/pkg/mod, so the job runs without it there: this Checklane machine mounts a disk at one path only\n",
+  );
+  assert.equal(fs.readFileSync(env.GITHUB_STATE, "utf8"), `key=go${os.EOL}`);
 });
 
 test("a disk not mounted warns and leaves the job be", async (t) => {

@@ -9,7 +9,7 @@ inputs:
     description: Names the disk. Jobs of the repository that use the same key get the same disk.
     required: true
   path:
-    description: The directory the disk is mounted at. ~ is your home directory; a relative path is relative to the workspace.
+    description: The directory the disk is mounted at, or up to 16 of them, one per line, all on the one disk. ~ is your home directory; a relative path is relative to the workspace.
     required: true
 runs:
   using: node24

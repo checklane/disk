@@ -36,10 +36,13 @@ jobs:
         with:
           key: e2e-c
           path: ./c
-      - uses: ./
+      - name: One disk at two paths
+        uses: ./
         with:
           key: e2e-d
-          path: ./d
+          path: |
+            ./d
+            ~/d
       - name: A fifth disk is skipped
         uses: ./
         with:
@@ -53,7 +56,7 @@ jobs:
 
       - name: Four disks are mounted, the others aren't
         run: |
-          for at in ./a ~/b ./c ./d; do
+          for at in ./a ~/b ./c ./d ~/d; do
             mountpoint -q "$at" || { echo "::error::$at isn't mounted"; exit 1; }
           done
           for at in ./e ./a-again; do
@@ -70,7 +73,7 @@ jobs:
 
       - name: Write to the disks
         run: |
-          for at in ./a ~/b ./c ./d; do
+          for at in ./a ~/b ./c ./d ~/d; do
             echo "$GITHUB_RUN_ID" > "$at/run"
             cmp -s <(echo "$GITHUB_RUN_ID") "$at/run"
           done

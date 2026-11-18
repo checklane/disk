@@ -59,32 +59,32 @@ Both inputs are required.
 - **`key`**: Names the disk within your repository. Up to 128 characters, on one line.
   Jobs that use the same key get the same disk.
 - **`path`**: The directory where the disk is mounted. Use an absolute path, `~` for
-  the runner's home, or a path relative to the workspace.
+  the runner's home, or a path relative to the workspace. To keep several directories
+  on one disk, list up to 16 of them, one per line.
 
 The directory is created if it does not exist. **Anything already at `path` is hidden
 while the disk is mounted.** Mount the disk before installing dependencies or building.
 
 ## Good uses
 
-Use disks for dependencies and build caches your tools can rebuild. Give each directory
-its own key. You can mount up to **4 disks in one job**.
+Use disks for dependencies and build caches your tools can rebuild. Directories that
+belong together, like a tool's cache and its downloads, can share one disk and one step.
+You can mount up to **4 disks in one job**, each with as many as 16 directories.
 
 These snippets go under `steps:` in a job running on Checklane, after checkout and any
 steps that set up your tools. Use the snippets that fit your project.
 
 ### Go build cache and modules
 
-Mount both directories before running Go. This uses two disks in the same job.
+Mount both directories before running Go. They share one disk.
 
 ```yaml
 - uses: checklane/disk@v1
   with:
-    key: go-build
-    path: ~/.cache/go-build
-- uses: checklane/disk@v1
-  with:
-    key: go-modules
-    path: ~/go/pkg/mod
+    key: go
+    path: |
+      ~/.cache/go-build
+      ~/go/pkg/mod
 - run: go build ./...
 ```
 
@@ -155,7 +155,7 @@ Point pnpm at the mounted store when installing dependencies.
 ## Limits
 
 - **4 disks per job.** A fifth `checklane/disk` step in the same job does nothing and
-  says so.
+  says so. One disk can hold up to 16 directories.
 - **Only trusted runs are kept.** The job must succeed in a push, scheduled or manual
   run on the repository's default branch. Other branches and pull requests, including
   those from forks, still get the disk, but their changes are thrown away.

@@ -9,12 +9,15 @@ everything in it, its commits and its pull requests are read by Checklane's cust
 The action is a thin client. The disk itself is put in place by the Checklane machine the
 job runs on; the action only asks for it.
 
-1. `main` (`src/main.ts` → `src/mount.ts`) reads the inputs `key` and `path`, makes the
-   path absolute (`~` is `$HOME`, a relative path is relative to `$GITHUB_WORKSPACE`), and
-   posts `{"key", "path"}` to `$CHECKLANE_DISK_URL/mount` with
-   `Authorization: Bearer $CHECKLANE_DISK_TOKEN`. The machine answers
-   `{"mounted": bool, "restored": bool, "skipped"?: string}`. On success it saves `key` as
-   step state.
+1. `main` (`src/main.ts` → `src/mount.ts`) reads the inputs `key` and `path` (one path a
+   line, up to 16), makes each path absolute (`~` is `$HOME`, a relative path is relative
+   to `$GITHUB_WORKSPACE`), and posts `{"key", "path", "paths"}` to
+   `$CHECKLANE_DISK_URL/mount` with `Authorization: Bearer $CHECKLANE_DISK_TOKEN`: `paths`
+   all of them, `path` the first, for machines from before several paths, which mount the
+   disk there alone. The machine answers
+   `{"mounted": bool, "restored": bool, "paths"?: string[], "skipped"?: string}`, `paths`
+   where it mounted the disk; without it, only at `path`, and the step warns about the
+   rest. On success it saves `key` as step state.
 2. `post` (`src/post.ts` → `src/unmount.ts`) posts `{"key"}` to
    `$CHECKLANE_DISK_URL/unmount`, answered `{"unmounted": bool, "skipped"?: string}`. The
    machine unmounts every disk at the end of the job anyway; this only does it sooner.
@@ -67,8 +70,8 @@ other with `.ts` extensions and use only erasable syntax (no `enum`, no `namespa
   `dist/` up to date (when it isn't, the run uploads the built `dist/` to take from it).
   Then the action itself off Checklane, where it must warn and let the job go on.
 - `e2e.yml`, on every pull request, pushes to `main`, daily and by hand: the action on a
-  `checklane-2vcpu` runner, with real disks. Four mount, a fifth and a repeated key are
-  skipped, and each disk says which run wrote it last (on `main`; a pull request's writes
+  `checklane-2vcpu` runner, with real disks. Four mount, one of them at two paths, a
+  fifth and a repeated key are skipped, and each disk says which run wrote it last (on `main`; a pull request's writes
   aren't kept). It fails when the machines don't serve disks.
 - `release.yml`, by hand: releases a version. See below.
 - Dependabot bumps the workflows' actions and the dev tools weekly, after a week's cooldown.
