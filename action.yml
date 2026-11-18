@@ -11,6 +11,10 @@ inputs:
   path:
     description: The directory the disk is mounted at, or up to 16 of them, one per line, all on the one disk. ~ is your home directory; a relative path is relative to the workspace.
     required: true
+  commit:
+    description: "When what the job leaves on the disk is kept for the next jobs, after a successful run on the default branch: true always, false never (the job reads the disk and its changes are thrown away), on-change when the job wrote to the disk, if-missing when the disk was empty for its paths."
+    required: false
+    default: "true"
 runs:
   using: node24
   main: dist/main.js
