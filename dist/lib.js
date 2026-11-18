@@ -3,6 +3,8 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+/** The commit input's values: when what the job leaves on the disk is kept. */
+export const commitModes = ["true", "false", "on-change", "if-missing"];
 // requestTimeout bounds a request to the disk endpoint: putting a disk in
 // place takes seconds.
 const requestTimeout = 5 * 60 * 1000;
